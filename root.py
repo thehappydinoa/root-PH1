@@ -3,41 +3,153 @@ import os
 import os.path
 import urllib
 import platform
+from time import sleep
 from zipfile import ZipFile
+from subprocess import check_output
 
-adbZip = "adb.zip"
 platformTools = "platform-tools"
+platformToolsZip = platformTools + ".zip"
 
 if not os.path.isdir(platformTools):
+    print("Setting up ADB")
     if "Linux" in platform.system():
         urllib.urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip", adbZip)
-    elif "Darwin" in platform.system()
+            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip", platformToolsZip)
+    elif "Darwin" in platform.system():
         urllib.urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip", adbZip)
+            "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip", platformToolsZip)
     elif "Windows" in platform.system():
         urllib.urlretrieve(
             "https://storage.googleapis.com/essential-static/Essential-PH1-WindowsDrivers.exe", "driver.exe")
         os.system('driver.exe')
         urllib.urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip", adbZip)
+            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip", platformToolsZip)
     else:
         raise OSError("ADB is not avaliable for this platform")
-    zip = ZipFile(adbZip)
+    zip = ZipFile(platformToolsZip)
     zip.extractall()
-    os.remove(adbZip)
+    os.remove(platformToolsZip)
 
 os.chdir(platformTools)
 
-if "Linux" in platform.system():
+if "Linux" in platform.system() or "Darwin" in platform.system():
     os.system("chmod +x adb")
-    adb_devices = os.system("./adb devices")
-elif "Darwin" in platform.system()
-    adb_devices = os.system("./adb devices")
+    os.system("chmod +x fastboot")
+    adbCommand = "./adb"
+    fastbootCommand = "./fastboot"
 elif "Windows" in platform.system():
-    adb_devices = os.system("adb.exe devices")
+    adbCommand = "adb.exe"
+    fastbootCommand = "fastboot.exe"
+
+print("Getting device list")
+adb_devices = check_output([adbCommand, "devices", "-l"])
 
 if "unauthorized" in adb_devices:
-    raise OSError("Allow access to the computer")
-elif "unauthorized" in adb_devices:
-    raise OSError("Allow access to the computer")
+    print("Allow access to the computer")
+    exit(1)
+elif not "device:mata" in adb_devices:
+    print("Please connect your Essential Phone")
+    exit(1)
+
+print("Found Essential Phone")
+
+print("Finding build number... "),
+adb_build_id = check_output(
+    [adbCommand, "shell", "getprop", "ro.build.display.id"])
+print(adb_build_id)
+
+
+beta_build_ids = ["OPM1.170911.130\n",
+                  "OPM1.170911.213\n", "OPM1.170911.254\n"]
+if adb_build_id in beta_build_ids:
+    print("Beta build found")
+else:
+    print("Beta builds are supported only")
+    exit(1)
+
+print("Downloading Magisk Manager... "),
+magiskManagerPath = "../Magisk/MagiskManager-v5.5.5.apk"
+urllib.urlretrieve(
+    "https://github.com/topjohnwu/MagiskManager/releases/download/v5.5.5/MagiskManager-v5.5.5.apk", magiskManagerPath)
+print("Done\n")
+
+print("Installing Magisk Manager... "),
+adb_install_magiskManager = check_output(
+    [adbCommand, "install", magiskManagerPath])
+print("Done")
+
+print("Rebooting into bootloader... "),
+check_output(
+    [adbCommand, "reboot", "bootloader"])
+
+fastboot_devices = check_output([fastbootCommand, "devices"])
+checks = 0
+while not "fastboot" in fastboot_devices and checks < 3:
+    sleep(3)
+    fastboot_devices = check_output([fastbootCommand, "devices"])
+    checks += 1
+if not "fastboot" in fastboot_devices:
+    print("Please try again")
+    exit(1)
+print("Done")
+
+fastboot_oem_info = check_output([fastbootCommand, "oem", "device-info"])
+if "Device unlocked: false" in fastboot_oem_info:
+    print("To root your device your bootloader must be unlocked")
+    print("Unlocking your bootloader will wipe your device")
+    response = raw_input("Unlock bootloader now? (y/n)").lower()
+    if response == "y":
+        bootloader_unlock = check_output(
+            [fastbootCommand, "flashing", "unlock"])
+        print("Press the Volume-down button to navigate to the YES option, then press the Power button to confirm")
+    else:
+        print("To root your device your bootloader must be unlocked")
+        print("Rebooting...")
+        check_output(
+            [fastbootCommand, "continue"])
+        exit(1)
+
+print("Installing TWRP... "),
+twrpImage = "../boot-images/twrp-mata_11.img"
+fastboot_flash = check_output([fastbootCommand, "flash", "boot", twrpImage])
+if "error: cannot load" in fastboot_flash:
+    print("Please try again")
+    exit(1)
+print("Done")
+
+print("Downloading Magisk... "),
+magiskPath = "../Magisk/Magisk.zip"
+urllib.urlretrieve("http://tiny.cc/latestmagisk", magiskPath)
+print("Done")
+
+
+print("\n1. Press the Volume-down button twice to navigate to the Recovery mode option, then press the Power button to confirm")
+print("2. Enter your password/pin/pattern to decrypt your data")
+print("3. Swipe to Allow Modifications\n")
+raw_input("Click [return] when you have reached the TWRP main menu")
+sleep(1)
+adb_mount = check_output([adbCommand, "shell", "mount", "/system"])
+sleep(1)
+adb_twrp_sideload = check_output([adbCommand, "shell", "twrp", "sideload"])
+sleep(1)
+adb_sideload = check_output([adbCommand, "sideload", magiskPath])
+print("\nClick on Reboot then select the bootloader option. Make sure to select 'Do not install' when asked about TWRP app\n")
+raw_input("Click [return] when you have reached the bootloader main menu")
+patchedImagePath = "../boot-images/patched/%s.img" % adb_build_id
+fastboot_flash = check_output(
+    [fastbootCommand, "flash", "boot", patchedImagePath])
+check_output([fastbootCommand, "continue"])
+
+
+sleep(5)
+adb_devices = check_output([adbCommand, "devices", "-l"])
+checks = 0
+while not "device:mata" in adb_devices and checks < 3:
+    sleep(3)
+    adb_devices = check_output([adbCommand, "devices", "-l"])
+    checks += 1
+if not "device:mata" in adb_devices:
+    print("Please try again")
+    exit(1)
+
+print("Your Essential Phone should now be rooted")
