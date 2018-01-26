@@ -63,8 +63,8 @@ def getBuild():
         [adbCommand, "shell", "getprop", "ro.build.display.id"])
     print(adb_build_id)
 
-    beta_build_ids = ["OPM1.170911.130\n",
-                      "OPM1.170911.213\n", "OPM1.170911.254\n"]
+    beta_build_ids = ["OPM1.170911.130",
+                      "OPM1.170911.213", "OPM1.170911.254"]
     if not adb_build_id in beta_build_ids:
         print("Beta builds are supported only")
         exit(1)
