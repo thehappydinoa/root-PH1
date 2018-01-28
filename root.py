@@ -63,8 +63,12 @@ def getBuild():
         [adbCommand, "shell", "getprop", "ro.build.display.id"])
     print(adb_build_id)
 
-    beta_build_ids = ["OPM1.170911.130",
-                      "OPM1.170911.213", "OPM1.170911.254"]
+    if "Windows" in platform.system():
+        beta_build_ids = ["OPM1.170911.130\r\n",
+                          "OPM1.170911.213\r\n", "OPM1.170911.254\r\n"]
+    else:
+        beta_build_ids = ["OPM1.170911.130\n",
+                          "OPM1.170911.213\n", "OPM1.170911.254\n"]
     if not adb_build_id in beta_build_ids:
         print("Beta builds are supported only")
         exit(1)
@@ -161,6 +165,7 @@ if __name__ == "__main__":
         rebootBootloader()
         unlockBootloader()
         installTWRP()
+        installMagisk()
         print("Your Essential Phone should now be rooted")
     except KeyboardInterrupt:
         print("Please do not quit while your device is being rooed")
