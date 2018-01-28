@@ -62,13 +62,13 @@ def getBuild():
     adb_build_id = check_output(
         [adbCommand, "shell", "getprop", "ro.build.display.id"])
     print(adb_build_id)
+
     if "Windows" in platform.system():
         beta_build_ids = ["OPM1.170911.130\r\n",
                           "OPM1.170911.213\r\n", "OPM1.170911.254\r\n"]
     else:
         beta_build_ids = ["OPM1.170911.130\n",
                           "OPM1.170911.213\n", "OPM1.170911.254\n"]
-        
     if not adb_build_id in beta_build_ids:
         print("Beta builds are supported only")
         exit(1)
