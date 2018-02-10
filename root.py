@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import sys
 import os
 import os.path
 import platform
@@ -9,6 +10,13 @@ from subprocess import check_output
 
 platformTools = "platform-tools"
 platformToolsZip = platformTools + ".zip"
+
+logo = '''
+88""Yb  dP"Yb   dP"Yb  888888          88""Yb 88  88   .d
+88__dP dP   Yb dP   Yb   88   ________ 88__dP 88  88 .d88
+88"Yb  Yb   dP Yb   dP   88   """""""" 88"""  888888   88
+88  Yb  YbodP   YbodP    88            88     88  88   88
+'''
 
 if not os.path.isdir(platformTools):
     print("Setting up ADB")
@@ -42,19 +50,52 @@ elif "Windows" in platform.system():
     fastbootCommand = "fastboot.exe"
 
 
+def menu():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print(logo)
+    print("1. Root with Magisk")
+    print("2. Unroot")
+    print("3. Unlock Bootloader Only")
+    print("4. Exit\n")
+    choice = input("Enter your choice [1-4]: ")
+
+    if choice == 1:
+        root()
+    elif choice == 2:
+        unroot()
+    elif choice == 3:
+        rebootBootloader()
+        unlockBootloader()
+    elif choice == 4:
+        sys.exit()
+
+
 def getDevices():
     print("Getting device list..."),
     adb_devices = check_output([adbCommand, "devices", "-l"])
 
     if "unauthorized" in adb_devices:
         print("Allow access to the computer")
-        exit(1)
+        return False
     elif not "device:mata" in adb_devices:
         print("Not Found")
         print("Please connect your Essential Phone")
-        exit(1)
+        print("Waiting...")
+        found = False
+        checks = 0
+        while not found and checks <= 60:
+            adb_devices = check_output([adbCommand, "devices", "-l"])
+            found = ("device:mata" in adb_devices)
+            if found:
+                print("Found")
+                return True
+            checks += 1
+            sleep(1)
+        print("Could not find your Essential Phone")
+        sys.exit()
     else:
         print("Found")
+        return True
 
 
 def getBuild():
@@ -152,7 +193,7 @@ def installMagisk():
     check_output([fastbootCommand, "continue"])
 
 
-if __name__ == "__main__":
+def root():
     getDevices()
     getBuild()
     try:
@@ -163,4 +204,23 @@ if __name__ == "__main__":
         installMagisk()
         print("Your Essential Phone should now be rooted")
     except KeyboardInterrupt:
-        print("Please do not quit while your device is being rooed")
+        print("Please do not quit while your device is being rooted")
+
+
+def unroot():
+    getDevices()
+    getBuild()
+    try:
+        rebootBootloader()
+        raw_input(
+            "Click [return] when you have reached the bootloader main menu")
+        stockImagePath = "../boot-images/stock/%s.img" % adb_build_id
+        fastboot_flash = check_output(
+            [fastbootCommand, "flash", "boot", stockImagePath])
+        print("Your Essential Phone should now be unrooted")
+    except KeyboardInterrupt:
+        print("Please do not quit while your device is being unrooted")
+
+
+if __name__ == "__main__":
+    menu()
