@@ -104,17 +104,17 @@ def getBuild():
         [adbCommand, "shell", "getprop", "ro.build.display.id"]).strip()
     print(adb_build_id)
 
-    beta_build_ids = ["OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254"]
+    beta_build_ids = ["OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254", "OPM1.180104.010"]
     if not adb_build_id in beta_build_ids:
-        print("Beta builds are supported only")
+        print("Oreo builds are supported only")
         exit(1)
 
 
 def magiskManager():
     print("Downloading Magisk Manager... "),
-    magiskManagerPath = "../Magisk/MagiskManager-v5.5.5.apk"
+    magiskManagerPath = "../Magisk/MagiskManager-v5.6.1.apk"
     urlretrieve(
-        "https://github.com/topjohnwu/MagiskManager/releases/download/v5.5.5/MagiskManager-v5.5.5.apk", magiskManagerPath)
+        "https://github.com/topjohnwu/MagiskManager/releases/download/v5.6.1/MagiskManager-v5.6.1.apk", magiskManagerPath)
     print("Done\n")
 
     print("Installing Magisk Manager... "),

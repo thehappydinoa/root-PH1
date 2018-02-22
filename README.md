@@ -11,3 +11,4 @@ python root.py
 ## Note
 
 Uses Python 2.7
+Roots Android 8.0 B1-3 and Android 8.1 B1
