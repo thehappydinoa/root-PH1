@@ -6,10 +6,11 @@ import platform
 from time import sleep
 from zipfile import ZipFile
 from urllib import urlretrieve
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 platformTools = "platform-tools"
 platformToolsZip = platformTools + ".zip"
+magiskFolder = "magisk"
 
 logo = '''
 88""Yb  dP"Yb   dP"Yb  888888          88""Yb 88  88   .d
@@ -17,6 +18,9 @@ logo = '''
 88"Yb  Yb   dP Yb   dP   88   """""""" 88"""  888888   88
 88  Yb  YbodP   YbodP    88            88     88  88   88
 '''
+
+if not os.path.isdir(magiskFolder):
+    os.mkdir(magiskFolder)
 
 if not os.path.isdir(platformTools):
     print("Setting up ADB")
@@ -51,23 +55,34 @@ elif "Windows" in platform.system():
 
 
 def menu():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print(logo)
-    print("1. Root with Magisk")
-    print("2. Unroot")
-    print("3. Unlock Bootloader Only")
-    print("4. Exit\n")
-    choice = input("Enter your choice [1-4]: ")
+    try:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(logo)
+        print("1. Root with Magisk")
+        print("2. Unroot")
+        print("3. Unlock Bootloader Only")
+        print("4. Exit\n")
+        try:
+            choice = int(raw_input("Enter your choice [1-4]: "))
+        except ValueError:
+            print("Please enter a int")
+            menu()
 
-    if choice == 1:
-        root()
-    elif choice == 2:
-        unroot()
-    elif choice == 3:
-        rebootBootloader()
-        unlockBootloader()
-    elif choice == 4:
-        sys.exit()
+        print('\n')
+
+        if choice == 1:
+            root()
+        elif choice == 2:
+            unroot()
+        elif choice == 3:
+            rebootBootloader()
+            unlockBootloader()
+        elif choice == 4:
+            sys.exit()
+        else:
+            menu()
+    except KeyboardInterrupt:
+        menu()
 
 
 def getDevices():
@@ -112,7 +127,7 @@ def getBuild():
 
 def magiskManager():
     print("Downloading Magisk Manager... "),
-    magiskManagerPath = "../Magisk/MagiskManager-v5.6.1.apk"
+    magiskManagerPath = "../%s/MagiskManager-v5.6.1.apk" % magiskFolder
     urlretrieve(
         "https://github.com/topjohnwu/MagiskManager/releases/download/v5.6.1/MagiskManager-v5.6.1.apk", magiskManagerPath)
     print("Done\n")
@@ -124,21 +139,25 @@ def magiskManager():
 
 
 def rebootBootloader():
-    print("Rebooting into bootloader... "),
-    check_output(
-        [adbCommand, "reboot", "bootloader"])
+    try:
+        print("Rebooting into bootloader... "),
+        check_output(
+            [adbCommand, "reboot", "bootloader"])
 
-    fastboot_devices = check_output([fastbootCommand, "devices"])
-    checks = 0
-    while not "fastboot" in fastboot_devices and checks < 3:
-        sleep(3)
         fastboot_devices = check_output([fastbootCommand, "devices"])
-        checks += 1
-    if not "fastboot" in fastboot_devices:
-        print("Please try again")
-        exit(1)
-    print("Done")
-
+        checks = 0
+        while not "fastboot" in fastboot_devices and checks < 3:
+            sleep(3)
+            fastboot_devices = check_output([fastbootCommand, "devices"])
+            checks += 1
+        if not "fastboot" in fastboot_devices:
+            print("Please try again")
+            exit(1)
+        print("Done")
+    except CalledProcessError as e:
+        print("Error: " + str(e))
+        sleep(3)
+        menu()
 
 def unlockBootloader():
     fastboot_oem_info = check_output([fastbootCommand, "oem", "device-info"])
@@ -171,7 +190,7 @@ def installTWRP():
 
 def installMagisk():
     print("Downloading Magisk... "),
-    magiskPath = "../Magisk/Magisk.zip"
+    magiskPath = "../%s/Magisk.zip" % magiskFolder
     urlretrieve("http://tiny.cc/latestmagisk", magiskPath)
     print("Done")
 
