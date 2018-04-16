@@ -119,8 +119,9 @@ def getBuild():
         [adbCommand, "shell", "getprop", "ro.build.display.id"]).strip()
     print(adb_build_id)
 
-    beta_build_ids = ["OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254", "OPM1.180104.010"]
-    if not adb_build_id in beta_build_ids:
+    build_ids = ["OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254",
+                 "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141"]
+    if not adb_build_id in build_ids:
         print("Oreo builds are supported only")
         exit(1)
 
@@ -158,6 +159,7 @@ def rebootBootloader():
         print("Error: " + str(e))
         sleep(3)
         menu()
+
 
 def unlockBootloader():
     fastboot_oem_info = check_output([fastbootCommand, "oem", "device-info"])
@@ -229,6 +231,8 @@ def root():
 def unroot():
     getDevices()
     getBuild()
+    raw_input(
+        "Click [return] when you have made sure all passwords, pins, or patterns have been turned off")
     try:
         rebootBootloader()
         raw_input(
