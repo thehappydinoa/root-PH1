@@ -37,8 +37,8 @@ if not os.path.isdir(platformTools):
         urlretrieve(
             "https://dl.google.com/android/repository/platform-tools-latest-windows.zip", platformToolsZip)
 
-    zip = ZipFile(platformToolsZip)
-    zip.extractall()
+    zip_file = ZipFile(platformToolsZip)
+    zip_file.extractall()
     os.remove(platformToolsZip)
 
 os.chdir(platformTools)
@@ -134,8 +134,7 @@ def magiskManager():
     print("Done\n")
 
     print("Installing Magisk Manager... "),
-    adb_install_magiskManager = check_output(
-        [adbCommand, "install", magiskManagerPath])
+    check_output([adbCommand, "install", magiskManagerPath])
     print("Done")
 
 
@@ -168,7 +167,7 @@ def unlockBootloader():
         print("Unlocking your bootloader will wipe your device")
         response = raw_input("Unlock bootloader now? (y/n)").lower()
         if response == "y":
-            bootloader_unlock = check_output(
+            check_output(
                 [fastbootCommand, "flashing", "unlock"])
             print("Press the Volume-down button to navigate to the YES option, then press the Power button to confirm")
         else:
@@ -201,16 +200,15 @@ def installMagisk():
     print("3. Swipe to Allow Modifications\n")
     raw_input("Click [return] when you have reached the TWRP main menu")
     sleep(1)
-    adb_mount = check_output([adbCommand, "shell", "mount", "/system"])
+    check_output([adbCommand, "shell", "mount", "/system"])
     sleep(1)
-    adb_twrp_sideload = check_output([adbCommand, "shell", "twrp", "sideload"])
+    check_output([adbCommand, "shell", "twrp", "sideload"])
     sleep(1)
-    adb_sideload = check_output([adbCommand, "sideload", magiskPath])
+    check_output([adbCommand, "sideload", magiskPath])
     print("\nClick on Reboot then select the bootloader option. Make sure to select 'Do not install' when asked about TWRP app\n")
     raw_input("Click [return] when you have reached the bootloader main menu")
     patchedImagePath = "../boot-images/patched/%s.img" % adb_build_id
-    fastboot_flash = check_output(
-        [fastbootCommand, "flash", "boot", patchedImagePath])
+    check_output([fastbootCommand, "flash", "boot", patchedImagePath])
     check_output([fastbootCommand, "continue"])
 
 
@@ -238,8 +236,7 @@ def unroot():
         raw_input(
             "Click [return] when you have reached the bootloader main menu")
         stockImagePath = "../boot-images/stock/%s.img" % adb_build_id
-        fastboot_flash = check_output(
-            [fastbootCommand, "flash", "boot", stockImagePath])
+        check_output([fastbootCommand, "flash", "boot", stockImagePath])
         print("Your Essential Phone should now be unrooted")
     except KeyboardInterrupt:
         print("Please do not quit while your device is being unrooted")
