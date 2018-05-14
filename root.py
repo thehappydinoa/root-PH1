@@ -26,23 +26,26 @@ if not os.path.isdir(platformTools):
     print("Setting up ADB")
     if "Linux" in platform.system():
         urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip", platformToolsZip)
+            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
+            platformToolsZip)
     elif "Darwin" in platform.system():
         urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip", platformToolsZip)
+            "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+            platformToolsZip)
     elif "Windows" in platform.system():
         urlretrieve(
-            "https://storage.googleapis.com/essential-static/Essential-PH1-WindowsDrivers.exe", "driver.exe")
+            "https://storage.googleapis.com/essential-static/Essential-PH1-WindowsDrivers.exe",
+            "driver.exe")
         os.system('driver.exe')
         urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip", platformToolsZip)
+            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
+            platformToolsZip)
 
     zip_file = ZipFile(platformToolsZip)
     zip_file.extractall()
     os.remove(platformToolsZip)
 
 os.chdir(platformTools)
-
 
 if "Linux" in platform.system() or "Darwin" in platform.system():
     os.system("chmod +x adb")
@@ -119,18 +122,23 @@ def getBuild():
         [adbCommand, "shell", "getprop", "ro.build.display.id"]).strip()
     print(adb_build_id)
 
-    build_ids = ["OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254",
-                 "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141"]
+    build_ids = [
+        "OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254",
+        "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141"
+    ]
     if not adb_build_id in build_ids:
-        print("Oreo builds are supported only")
+        print("Current supported builds:")
+        for build in build_ids:
+            print("  " + build)
         exit(1)
 
 
 def magiskManager():
     print("Downloading Magisk Manager... "),
-    magiskManagerPath = "../%s/MagiskManager-v5.6.1.apk" % magiskFolder
+    magiskManagerPath = "../%s/MagiskManager-v5.7.0.apk" % magiskFolder
     urlretrieve(
-        "https://github.com/topjohnwu/MagiskManager/releases/download/v5.6.1/MagiskManager-v5.6.1.apk", magiskManagerPath)
+        "https://github.com/topjohnwu/MagiskManager/releases/download/v5.7.0/MagiskManager-v5.7.0.apk",
+        magiskManagerPath)
     print("Done\n")
 
     print("Installing Magisk Manager... "),
@@ -141,8 +149,7 @@ def magiskManager():
 def rebootBootloader():
     try:
         print("Rebooting into bootloader... "),
-        check_output(
-            [adbCommand, "reboot", "bootloader"])
+        check_output([adbCommand, "reboot", "bootloader"])
 
         fastboot_devices = check_output([fastbootCommand, "devices"])
         checks = 0
@@ -167,14 +174,14 @@ def unlockBootloader():
         print("Unlocking your bootloader will wipe your device")
         response = raw_input("Unlock bootloader now? (y/n)").lower()
         if response == "y":
-            check_output(
-                [fastbootCommand, "flashing", "unlock"])
-            print("Press the Volume-down button to navigate to the YES option, then press the Power button to confirm")
+            check_output([fastbootCommand, "flashing", "unlock"])
+            print(
+                "Press the Volume-down button to navigate to the YES option, then press the Power button to confirm"
+            )
         else:
             print("To root your device your bootloader must be unlocked")
             print("Rebooting...")
-            check_output(
-                [fastbootCommand, "continue"])
+            check_output([fastbootCommand, "continue"])
             exit(1)
 
 
@@ -195,7 +202,9 @@ def installMagisk():
     urlretrieve("http://tiny.cc/latestmagisk", magiskPath)
     print("Done")
 
-    print("\n1. Press the Volume-down button twice to navigate to the Recovery mode option, then press the Power button to confirm")
+    print(
+        "\n1. Press the Volume-down button twice to navigate to the Recovery mode option, then press the Power button to confirm"
+    )
     print("2. Enter your password/pin/pattern to decrypt your data")
     print("3. Swipe to Allow Modifications\n")
     raw_input("Click [return] when you have reached the TWRP main menu")
@@ -205,7 +214,9 @@ def installMagisk():
     check_output([adbCommand, "shell", "twrp", "sideload"])
     sleep(1)
     check_output([adbCommand, "sideload", magiskPath])
-    print("\nClick on Reboot then select the bootloader option. Make sure to select 'Do not install' when asked about TWRP app\n")
+    print(
+        "\nClick on Reboot then select the bootloader option. Make sure to select 'Do not install' when asked about TWRP app\n"
+    )
     raw_input("Click [return] when you have reached the bootloader main menu")
     patchedImagePath = "../boot-images/patched/%s.img" % adb_build_id
     check_output([fastbootCommand, "flash", "boot", patchedImagePath])
@@ -230,7 +241,8 @@ def unroot():
     getDevices()
     getBuild()
     raw_input(
-        "Click [return] when you have made sure all passwords, pins, or patterns have been turned off")
+        "Click [return] when you have made sure all passwords, pins, or patterns have been turned off"
+    )
     try:
         rebootBootloader()
         raw_input(
