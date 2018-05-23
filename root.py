@@ -124,7 +124,8 @@ def getBuild():
 
     build_ids = [
         "OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254",
-        "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141"
+        "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141",
+        "OPM1.180104.166"
     ]
     if not adb_build_id in build_ids:
         print("Current supported builds:")
