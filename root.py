@@ -26,7 +26,7 @@ if not os.path.isdir(platformTools):
     print("Setting up ADB")
     if "Linux" in platform.system():
         urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
+            "https://dl.google.com/android/repository/platform-tools_r25-linux.zip",
             platformToolsZip)
     elif "Darwin" in platform.system():
         urlretrieve(
@@ -38,7 +38,7 @@ if not os.path.isdir(platformTools):
             "driver.exe")
         os.system('driver.exe')
         urlretrieve(
-            "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
+            "https://dl.google.com/android/repository/platform-tools_r25-windows.zip",
             platformToolsZip)
 
     zip_file = ZipFile(platformToolsZip)
@@ -123,9 +123,8 @@ def getBuild():
     print(adb_build_id)
 
     build_ids = [
-        "OPM1.170911.130", "OPM1.170911.213", "OPM1.170911.254",
-        "OPM1.180104.010", "OPM1.180104.092", "OPM1.180104.141",
-        "OPM1.180104.166"
+        "OPM1.180104.141", "OPM1.180104.166", "OPM1.180104.234",
+        "OPM1.180104.267", "PQ1A.190105.058",
     ]
     if not adb_build_id in build_ids:
         print("Current supported builds:")
@@ -138,7 +137,7 @@ def magiskManager():
     print("Downloading Magisk Manager... "),
     magiskManagerPath = "../%s/MagiskManager-v5.7.0.apk" % magiskFolder
     urlretrieve(
-        "https://github.com/topjohnwu/MagiskManager/releases/download/v5.7.0/MagiskManager-v5.7.0.apk",
+        "https://github.com/topjohnwu/Magisk/releases/download/manager-v7.1.2/MagiskManager-v7.1.2.apk",
         magiskManagerPath)
     print("Done\n")
 
@@ -200,7 +199,7 @@ def installTWRP():
 def installMagisk():
     print("Downloading Magisk... "),
     magiskPath = "../%s/Magisk.zip" % magiskFolder
-    urlretrieve("http://tiny.cc/latestmagisk", magiskPath)
+    urlretrieve("http://tiny.cc/updatemagisk", magiskPath)
     print("Done")
 
     print(
